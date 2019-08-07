@@ -38,6 +38,7 @@
 (defn root-cause
   "Returns the initial cause of an exception or error by peeling off all of
   its wrappers"
+  {:added "1.3"}
   [ ^Exception t]                     ;;; ^Throwable
   (loop [cause t]
     (if (and (instance? clojure.lang.Compiler+CompilerException cause)
@@ -46,6 +47,20 @@
 	  (if-let [cause (.InnerException cause)]    ;;; .getCause
         (recur cause)
         cause))))
+
+;;;;;;;;;;;;;;;;;;; end of redundantly copied from clojure.repl to avoid dep ;;;;;;;;;;;;;;
+
+(def ^:private core-namespaces
+  #{"clojure.core" "clojure.core.reducers" "clojure.core.protocols" "clojure.data" "clojure.datafy"
+    "clojure.edn" "clojure.instant" "clojure.java.io" "clojure.main" "clojure.pprint" "clojure.reflect"
+    "clojure.repl" "clojure.set" "clojure.spec.alpha" "clojure.spec.gen.alpha" "clojure.spec.test.alpha"
+    "clojure.string" "clojure.template" "clojure.uuid" "clojure.walk" "clojure.xml" "clojure.zip"})
+
+(defn- core-class?
+  [^String class-name]
+  (and (not (nil? class-name))
+       (or (.StartsWith class-name "clojure.lang.")                                            ;;; .startsWith
+           (contains? core-namespaces (second (re-find #"^([^$]+)\$" class-name))))))
 
 ;;;  Added -DM
 
